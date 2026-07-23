@@ -1,5 +1,6 @@
 package com.example.ui
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -11,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.BottomTab
 import com.example.ui.components.EarnRewardBottomBar
@@ -45,6 +47,9 @@ fun AppNavHost(
 
     var currentRoute by remember { mutableStateOf(AppScreenRoute.SPLASH) }
     var currentBottomTab by remember { mutableStateOf(BottomTab.HOME) }
+
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     val isVerified = currentUser?.isVerified ?: false
     val maxAds = if (isVerified) viewModel.repository.MAX_ADS_PER_DAY_VERIFIED else viewModel.repository.MAX_ADS_PER_DAY_UNVERIFIED
@@ -102,7 +107,9 @@ fun AppNavHost(
                                     maxAdsPerDay = maxAds,
                                     pointsPerAd = pointsPerAd,
                                     pointsPerBdt = viewModel.repository.POINTS_PER_BDT,
-                                    onWatchVideoClick = { viewModel.startRewardedAd() },
+                                    onWatchVideoClick = {
+                                        activity?.let { viewModel.startRewardedAd(it) }
+                                    },
                                     onNavigateToWithdraw = { currentBottomTab = BottomTab.WITHDRAW },
                                     onNavigateToDailyReward = { currentBottomTab = BottomTab.DAILY_REWARD }
                                 )

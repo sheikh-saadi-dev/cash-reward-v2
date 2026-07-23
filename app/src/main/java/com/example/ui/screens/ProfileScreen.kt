@@ -84,6 +84,7 @@ fun ProfileScreen(
     var showSheetGuideModal by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showAdUnitDialog by remember { mutableStateOf(false) }
 
     val isVerified = user?.isVerified ?: false
 
@@ -368,6 +369,17 @@ fun ProfileScreen(
 
             // Menu Options
             ProfileMenuItem(
+                title = "AdMob Ad Unit Config (অ্যাড ইউনিট)",
+                subtitle = "Rewarded Video: ca-app-pub-4161371611521203/1344210098",
+                icon = Icons.Default.PlayCircle,
+                iconColor = Color(0xFFFFC107),
+                onClick = { showAdUnitDialog = true },
+                testTag = "menu_admob_unit"
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ProfileMenuItem(
                 title = "Withdraw History (ক্যাশআউট ইতিহাস)",
                 subtitle = "আপনার সব উইথড্রল স্ট্যাটাস দেখুন",
                 icon = Icons.Default.History,
@@ -488,6 +500,74 @@ fun ProfileScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF381F62))
                         ) {
                             Text("বন্ধ করুন", color = Color.White)
+                        }
+                    }
+                }
+            }
+        }
+
+        // AdMob Ad Unit Config Dialog
+        if (showAdUnitDialog) {
+            Dialog(onDismissRequest = { showAdUnitDialog = false }) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF22113D)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFC107))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.PlayCircle,
+                                contentDescription = null,
+                                tint = Color(0xFFFFC107),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "AdMob Ad Unit (Video)",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFFC107)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF140A26))
+                                .border(1.dp, Color(0xFF381F62), RoundedCornerShape(12.dp))
+                                .padding(12.dp)
+                        ) {
+                            Column {
+                                Text("Ad Unit Name: Video", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Format: Rewarded", fontSize = 13.sp, color = Color(0xFF00E5FF))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Reward Settings: 2 Rewards / Video", fontSize = 13.sp, color = Color(0xFF00E676))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Ad Unit ID:", fontSize = 11.sp, color = Color(0xFFD1C4E9))
+                                Text("ca-app-pub-4161371611521203/1344210098", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFFFFC107))
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        Button(
+                            onClick = { showAdUnitDialog = false },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFA142F4))
+                        ) {
+                            Text("ঠিক আছে (OK)", color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

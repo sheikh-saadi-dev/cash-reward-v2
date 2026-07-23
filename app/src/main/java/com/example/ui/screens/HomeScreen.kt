@@ -307,6 +307,11 @@ fun HomeScreen(
                                 fontSize = 12.sp,
                                 color = Color(0xFF00E5FF)
                             )
+                            Text(
+                                text = "Ad Unit: Video (ID: ca-app-pub-4161371611521203/1344210098)",
+                                fontSize = 10.sp,
+                                color = Color(0xFFB388FF)
+                            )
                         }
                     }
 

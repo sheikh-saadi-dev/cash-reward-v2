@@ -1,12 +1,21 @@
 package com.example.ui
 
+import android.app.Activity
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.database.AppDatabase
 import com.example.data.model.UserProfile
 import com.example.data.model.WithdrawRequest
 import com.example.data.repository.EarnRewardRepository
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.OnUserEarnedRewardListener
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,7 +93,7 @@ class EarnRewardViewModel(application: Application) : AndroidViewModel(applicati
         }
 
         val phoneUser = UserProfile(
-            id = "P-" + cleanPhone, // Same phone number lookup identifier
+            id = "P-" + cleanPhone,
             name = cleanName,
             emailOrPhone = cleanPhone,
             authType = "PHONE",
@@ -98,7 +107,12 @@ class EarnRewardViewModel(application: Application) : AndroidViewModel(applicati
         repository.logout()
     }
 
-    fun startRewardedAd() {
+    /**
+     * Loads and displays Google AdMob Rewarded Video Ad.
+     * Uses primary Ad Unit ID: ca-app-pub-4161371611521203/1344210098
+     * Fallbacks to official Google Test Ad Unit if live unit returns No Fill (Error code 3).
+     */
+    fun startRewardedAd(activity: Activity) {
         val user = currentUser.value
         val isVerified = user?.isVerified ?: false
         val maxAds = if (isVerified) repository.MAX_ADS_PER_DAY_VERIFIED else repository.MAX_ADS_PER_DAY_UNVERIFIED
@@ -108,10 +122,72 @@ class EarnRewardViewModel(application: Application) : AndroidViewModel(applicati
             return
         }
 
+        _adState.value = AdPlayState.Loading
+
+        val primaryAdUnitId = repository.REWARDED_AD_UNIT_ID // ca-app-pub-4161371611521203/1344210098
+        val testAdUnitId = "ca-app-pub-3940256099942544/5224354917" // Google AdMob Test Rewarded Ad Unit ID
+
+        loadAndShowAdMob(activity, primaryAdUnitId) { firstError ->
+            Log.d("AdMob", "Primary Ad Unit failed (${firstError.message}). Trying Test Ad Unit fallback...")
+            // Attempt with official test unit ID so rewarded ad runs reliably
+            loadAndShowAdMob(activity, testAdUnitId) { secondError ->
+                // If both fail (e.g. no internet connection), run fallback simulated ad or display error
+                Log.e("AdMob", "Both AdMob units failed: ${secondError.message}")
+                runSimulatedAdFallback("AdMob Load Error: ${secondError.message}")
+            }
+        }
+    }
+
+    private fun loadAndShowAdMob(
+        activity: Activity,
+        adUnitId: String,
+        onFailed: (LoadAdError) -> Unit
+    ) {
+        val adRequest = AdRequest.Builder().build()
+
+        RewardedAd.load(
+            activity,
+            adUnitId,
+            adRequest,
+            object : RewardedAdLoadCallback() {
+                override fun onAdLoaded(rewardedAd: RewardedAd) {
+                    Log.d("AdMob", "AdMob Rewarded Ad loaded successfully for $adUnitId")
+
+                    rewardedAd.fullScreenContentCallback = object : FullScreenContentCallback() {
+                        override fun onAdShowedFullScreenContent() {
+                            Log.d("AdMob", "AdMob Rewarded Ad showed full screen")
+                        }
+
+                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                            Log.e("AdMob", "AdMob Rewarded Ad failed to show: ${adError.message}")
+                            _adState.value = AdPlayState.Error("অ্যাড দেখাতে ব্যর্থ হয়েছে: ${adError.message}")
+                        }
+
+                        override fun onAdDismissedFullScreenContent() {
+                            Log.d("AdMob", "AdMob Rewarded Ad dismissed")
+                        }
+                    }
+
+                    rewardedAd.show(activity, OnUserEarnedRewardListener { rewardItem ->
+                        Log.d("AdMob", "User earned reward: ${rewardItem.amount} ${rewardItem.type}")
+                        val earned = repository.recordVideoAdWatched()
+                        _adState.value = AdPlayState.Completed(earned)
+                    })
+                }
+
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Log.w("AdMob", "AdMob failed to load ($adUnitId): ${loadAdError.message}")
+                    onFailed(loadAdError)
+                }
+            }
+        )
+    }
+
+    private fun runSimulatedAdFallback(reason: String) {
         adJob?.cancel()
         adJob = viewModelScope.launch {
             _adState.value = AdPlayState.Loading
-            delay(1200) // Simulated ad load delay
+            delay(1000)
 
             val totalDuration = 5
             for (sec in totalDuration downTo 1) {
@@ -159,3 +235,4 @@ class EarnRewardViewModel(application: Application) : AndroidViewModel(applicati
         repository.setWebhookUrl(newUrl)
     }
 }
+

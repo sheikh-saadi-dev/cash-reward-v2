@@ -35,6 +35,9 @@ class EarnRewardRepository(
         .build()
 
     // Configurable Constants
+    val REWARDED_AD_UNIT_ID = "ca-app-pub-4161371611521203/1344210098"
+    val AD_UNIT_NAME = "Video"
+    val AD_FORMAT = "Rewarded"
     val POINTS_PER_BDT = 1000
     val POINTS_PER_AD_VERIFIED = 20
     val POINTS_PER_AD_UNVERIFIED = 15
