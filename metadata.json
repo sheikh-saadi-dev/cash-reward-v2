@@ -1,0 +1,6 @@
+{
+  "name": "Earn Reward",
+  "description": "Watch video ads, earn points, claim daily bonuses, and withdraw to bKash or Nagad.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
