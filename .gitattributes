@@ -1,0 +1,11 @@
+# Treat jar and binary files as binary to avoid corruption on Git upload
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.keystore binary
+
+# Ensure gradlew uses LF line endings
+gradlew text eol=lf
+*.sh text eol=lf
+* text=auto

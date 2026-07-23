@@ -9,8 +9,12 @@ workflows:
       - name: Set Android SDK location
         script: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-      - name: Make gradlew executable
+      - name: Ensure valid Gradle Wrapper
         script: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ] || ! jar tf gradle/wrapper/gradle-wrapper.jar > /dev/null 2>&1; then
+            echo "Gradle wrapper jar is missing or corrupted. Regenerating wrapper..."
+            gradle wrapper
+          fi
           chmod +x gradlew
       - name: Build Android Debug APK
         script: |
